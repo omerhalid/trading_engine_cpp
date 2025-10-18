@@ -1,0 +1,57 @@
+# Compiled binaries
+tick_to_trade
+tick_to_trade_debug
+test_feed_generator
+
+# Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.a
+*.lib
+
+# Assembly output
+*.s
+
+# Logs
+*.log
+hft_system.log
+emergency.log
+
+# Core dumps
+core
+core.*
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Build directories
+build/
+bin/
+obj/
+
+# Perf data
+perf.data
+perf.data.old
+
+# Test data
+*.pcap
+*.dat
+

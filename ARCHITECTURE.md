@@ -13,7 +13,8 @@ trading_engine_cpp/
 │
 ├── Type Definitions
 │   ├── types.hpp               Market data types and structures
-│   └── utils.hpp               Utility classes (timing, threading, spin wait)
+│   ├── utils.hpp               Utility classes (timing, threading, spin wait)
+│   └── error_handling.hpp      Error codes and result types (no exceptions)
 │
 ├── Network & Protocol
 │   ├── udp_receiver.hpp        Optimized UDP receiver (kernel bypass ready)
@@ -25,7 +26,6 @@ trading_engine_cpp/
 │
 ├── Application
 │   ├── main.cpp                Main entry point
-│   ├── tick_to_trade.cpp       (DEPRECATED - use main.cpp)
 │   └── test_feed_generator.cpp Test data generator
 │
 ├── Build & Documentation

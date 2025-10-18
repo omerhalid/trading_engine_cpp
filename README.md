@@ -39,9 +39,10 @@
 ### File Organization
 
 - **Core Data Structures**: `spsc_queue.hpp`, `memory_pool.hpp`, `logger.hpp`
-- **Types & Utils**: `types.hpp`, `utils.hpp`
+- **Types & Utils**: `types.hpp`, `utils.hpp`, `error_handling.hpp`
 - **Network**: `udp_receiver.hpp`, `packet_manager.hpp`
-- **Application**: `tick_to_trade.cpp`, `test_feed_generator.cpp`
+- **Business Logic**: `feed_handler_impl.hpp`, `trading_engine.hpp`
+- **Application**: `main.cpp`, `test_feed_generator.cpp`
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
 
