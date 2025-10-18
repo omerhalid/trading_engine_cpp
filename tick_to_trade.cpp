@@ -1,11 +1,15 @@
 #include "spsc_queue.hpp"
-#include "feed_handler.hpp"
+#include "types.hpp"
+#include "utils.hpp"
 #include "udp_receiver.hpp"
 #include "packet_manager.hpp"
+#include "logger.hpp"
+#include "memory_pool.hpp"
 #include <iostream>
 #include <thread>
 #include <atomic>
 #include <signal.h>
+#include <sstream>
 
 using namespace hft;
 
@@ -60,23 +64,31 @@ private:
     PacketManager packet_manager_;
     RecoveryFeedManager recovery_manager_;
     
+    // Memory pool for market events (optional - demonstrates usage)
+    MemoryPool<MarketEvent, 8192> event_pool_;
+    
     uint64_t expected_sequence_{0};
     int core_id_;
     
     // Maintenance timer for periodic checks
     uint64_t last_maintenance_time_{0};
     static constexpr uint64_t MAINTENANCE_INTERVAL_NS = 100000000ULL; // 100ms
+    uint64_t last_log_time_{0};
+    static constexpr uint64_t LOG_INTERVAL_NS = 5000000000ULL; // 5 seconds
 
 public:
     FeedHandler(SPSCQueue<MarketEvent, 65536>& queue, 
                FeedHandlerStats& stats,
-               int core_id = 0)
-        : event_queue_(queue), stats_(stats), core_id_(core_id) {
+               int core_id = 0,
+               bool use_huge_pages = false)
+        : event_queue_(queue), stats_(stats), event_pool_(use_huge_pages), core_id_(core_id) {
         
         // Setup gap fill callback
         packet_manager_.set_gap_fill_callback([this](const GapFillRequest& req) {
             handle_gap_fill_request(req);
         });
+        
+        LOG_INFO("FeedHandler initialized");
     }
     
     /**
@@ -98,11 +110,13 @@ public:
         ThreadUtils::set_realtime_priority();
         
         std::cout << "[FeedHandler] Started on core " << core_id_ << std::endl;
+        LOG_INFO("FeedHandler thread started");
         
         uint64_t spin_count = 0;
         constexpr uint64_t STATS_INTERVAL = 1000000; // Print stats every 1M iterations
         
         last_maintenance_time_ = LatencyTracker::rdtsc();
+        last_log_time_ = last_maintenance_time_;
         
         while (g_running.load(std::memory_order_acquire)) {
             const uint64_t current_time = LatencyTracker::rdtsc();
@@ -111,6 +125,12 @@ public:
             if (current_time - last_maintenance_time_ > MAINTENANCE_INTERVAL_NS) {
                 packet_manager_.periodic_maintenance(current_time);
                 last_maintenance_time_ = current_time;
+                
+                // Log memory pool stats periodically
+                if (current_time - last_log_time_ > LOG_INTERVAL_NS) {
+                    log_stats();
+                    last_log_time_ = current_time;
+                }
             }
             
             // Busy poll for packets - no blocking!
@@ -265,10 +285,12 @@ private:
      * In production: sends request to recovery feed
      */
     void handle_gap_fill_request(const GapFillRequest& req) {
-        std::cout << "[FeedHandler] GAP DETECTED: sequences " 
-                  << req.start_seq << " to " << req.end_seq 
-                  << " (gap size: " << (req.end_seq - req.start_seq + 1) << ")"
-                  << std::endl;
+        char msg[256];
+        snprintf(msg, sizeof(msg), "GAP DETECTED: sequences %lu to %lu (gap size: %lu)",
+                req.start_seq, req.end_seq, (req.end_seq - req.start_seq + 1));
+        LOG_WARN(msg);
+        
+        std::cout << "[FeedHandler] " << msg << std::endl;
         
         // In production: send recovery request
         // Examples:
@@ -279,23 +301,25 @@ private:
         recovery_manager_.request_retransmission(req.start_seq, req.end_seq);
         
         // Log state transition
-        std::cout << "[FeedHandler] Feed state: ";
+        const char* state_str = "UNKNOWN";
         switch (packet_manager_.get_state()) {
             case FeedState::INITIAL:
-                std::cout << "INITIAL";
+                state_str = "INITIAL";
                 break;
             case FeedState::LIVE:
-                std::cout << "LIVE";
+                state_str = "LIVE";
                 break;
             case FeedState::RECOVERING:
-                std::cout << "RECOVERING";
+                state_str = "RECOVERING";
+                LOG_WARN("Feed state: RECOVERING");
                 break;
             case FeedState::STALE:
-                std::cout << "STALE (requesting snapshot)";
+                state_str = "STALE";
+                LOG_ERROR("Feed state: STALE - requesting snapshot");
                 recovery_manager_.request_snapshot();
                 break;
         }
-        std::cout << std::endl;
+        std::cout << "[FeedHandler] Feed state: " << state_str << std::endl;
     }
     
     void print_stats() {
@@ -328,6 +352,26 @@ private:
                       << std::endl;
         }
     }
+    
+    /**
+     * Log statistics to async logger
+     */
+    void log_stats() {
+        const auto& pm_stats = packet_manager_.get_stats();
+        const auto pool_stats = event_pool_.get_stats();
+        
+        char msg[512];
+        snprintf(msg, sizeof(msg), 
+                "Stats: Packets(recv=%lu proc=%lu drop=%lu) PacketMgr(dup=%lu gaps=%lu) "
+                "MemPool(alloc=%lu dealloc=%lu inuse=%lu fail=%lu)",
+                stats_.packets_received.load(std::memory_order_relaxed),
+                stats_.packets_processed.load(std::memory_order_relaxed),
+                stats_.packets_dropped.load(std::memory_order_relaxed),
+                pm_stats.duplicates, pm_stats.gaps_detected,
+                pool_stats.allocations, pool_stats.deallocations,
+                pool_stats.in_use, pool_stats.failures);
+        LOG_INFO(msg);
+    }
 };
 
 /**
@@ -356,6 +400,7 @@ public:
         ThreadUtils::set_realtime_priority();
         
         std::cout << "[TradingEngine] Started on core " << core_id_ << std::endl;
+        LOG_INFO("TradingEngine thread started");
         
         MarketEvent event{};
         uint64_t events_processed = 0;
@@ -464,6 +509,7 @@ int main(int argc, char* argv[]) {
 ╔══════════════════════════════════════════════════════════════╗
 ║         HFT TICK-TO-TRADE FEED HANDLER                      ║
 ║         Lock-Free SPSC | Kernel Bypass UDP                  ║
+║         Memory Pool | Async Logger                          ║
 ╚══════════════════════════════════════════════════════════════╝
     )" << std::endl;
     
@@ -473,6 +519,11 @@ int main(int argc, char* argv[]) {
     const uint16_t PORT = 15000;
     const int FEED_HANDLER_CORE = 0;
     const int TRADING_ENGINE_CORE = 1;
+    const bool USE_HUGE_PAGES = false;  // Set to true if huge pages configured
+    
+    // Initialize logger
+    Logger::initialize("hft_system.log", LogLevel::INFO);
+    LOG_INFO("=== HFT System Starting ===");
     
     // Setup signal handler for graceful shutdown
     signal(SIGINT, signal_handler);
@@ -483,16 +534,24 @@ int main(int argc, char* argv[]) {
     FeedHandlerStats stats;
     
     // Create feed handler and trading engine
-    FeedHandler feed_handler(event_queue, stats, FEED_HANDLER_CORE);
+    FeedHandler feed_handler(event_queue, stats, FEED_HANDLER_CORE, USE_HUGE_PAGES);
     TradingEngine trading_engine(event_queue, TRADING_ENGINE_CORE);
     
     // Initialize UDP receiver
     std::cout << "[Main] Initializing UDP receiver..." << std::endl;
+    LOG_INFO("Initializing UDP receiver");
+    
     if (!feed_handler.init(MULTICAST_IP, PORT)) {
         std::cerr << "[Main] Failed to initialize UDP receiver" << std::endl;
+        LOG_ERROR("Failed to initialize UDP receiver");
+        Logger::shutdown();
         return 1;
     }
-    std::cout << "[Main] Listening on " << MULTICAST_IP << ":" << PORT << std::endl;
+    
+    char msg[256];
+    snprintf(msg, sizeof(msg), "Listening on %s:%d", MULTICAST_IP.c_str(), PORT);
+    LOG_INFO(msg);
+    std::cout << "[Main] " << msg << std::endl;
     
     // Launch threads
     // In production: consider using std::jthread or manual pthread for more control
@@ -515,6 +574,8 @@ int main(int argc, char* argv[]) {
     std::cout << "  ✓ Feed state machine (INITIAL/LIVE/RECOVERING/STALE)" << std::endl;
     std::cout << "  ✓ Gap fill request generation (with retry logic)" << std::endl;
     std::cout << "  ✓ Recovery feed manager integration points" << std::endl;
+    std::cout << "  ✓ Lock-free memory pool (8K slots)" << std::endl;
+    std::cout << "  ✓ Async logger (64K message queue)" << std::endl;
     std::cout << "\n[Main] Production enhancements to consider:" << std::endl;
     std::cout << "  • Solarflare/DPDK for true kernel bypass" << std::endl;
     std::cout << "  • Hardware timestamping" << std::endl;
@@ -531,6 +592,10 @@ int main(int argc, char* argv[]) {
     trading_thread.join();
     
     std::cout << "[Main] Shutdown complete" << std::endl;
+    LOG_INFO("=== HFT System Shutdown Complete ===");
+    
+    // Shutdown logger (flushes remaining messages)
+    Logger::shutdown();
     
     return 0;
 }

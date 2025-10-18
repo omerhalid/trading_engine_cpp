@@ -23,10 +23,10 @@ TEST_GEN = test_feed_generator
 # Production build
 all: $(TARGET) $(TEST_GEN)
 
-$(TARGET): tick_to_trade.cpp spsc_queue.hpp feed_handler.hpp udp_receiver.hpp packet_manager.hpp
+$(TARGET): tick_to_trade.cpp spsc_queue.hpp types.hpp utils.hpp udp_receiver.hpp packet_manager.hpp logger.hpp memory_pool.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -o $(TARGET) tick_to_trade.cpp
 
-$(TEST_GEN): test_feed_generator.cpp feed_handler.hpp
+$(TEST_GEN): test_feed_generator.cpp types.hpp utils.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -o $(TEST_GEN) test_feed_generator.cpp
 
 # Debug build
