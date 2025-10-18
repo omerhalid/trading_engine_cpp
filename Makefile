@@ -20,18 +20,22 @@ DEBUGFLAGS = -g -O0 -DDEBUG
 TARGET = tick_to_trade
 TEST_GEN = test_feed_generator
 
+# Source files and headers
+HEADERS = spsc_queue.hpp types.hpp utils.hpp udp_receiver.hpp packet_manager.hpp \
+          logger.hpp memory_pool.hpp feed_handler_impl.hpp trading_engine.hpp
+
 # Production build
 all: $(TARGET) $(TEST_GEN)
 
-$(TARGET): tick_to_trade.cpp spsc_queue.hpp types.hpp utils.hpp udp_receiver.hpp packet_manager.hpp logger.hpp memory_pool.hpp
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -o $(TARGET) tick_to_trade.cpp
+$(TARGET): main.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -o $(TARGET) main.cpp
 
 $(TEST_GEN): test_feed_generator.cpp types.hpp utils.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -o $(TEST_GEN) test_feed_generator.cpp
 
 # Debug build
-debug: tick_to_trade.cpp spsc_queue.hpp feed_handler.hpp udp_receiver.hpp
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET)_debug tick_to_trade.cpp
+debug: main.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET)_debug main.cpp
 
 # Clean
 clean:
@@ -49,8 +53,8 @@ perf: $(TARGET)
 	sudo perf report
 
 # Check assembly output (useful for optimization verification)
-asm: tick_to_trade.cpp
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -S -o tick_to_trade.s tick_to_trade.cpp
+asm: main.cpp
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) -S -o main.s main.cpp
 
 # Test with generated feed (runs both generator and receiver)
 test: $(TARGET) $(TEST_GEN)

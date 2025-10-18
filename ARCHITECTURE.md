@@ -19,16 +19,22 @@ trading_engine_cpp/
 │   ├── udp_receiver.hpp        Optimized UDP receiver (kernel bypass ready)
 │   └── packet_manager.hpp      Gap/duplicate handling, resequencing
 │
+├── Business Logic
+│   ├── feed_handler_impl.hpp   Feed handler implementation
+│   └── trading_engine.hpp      Trading engine implementation
+│
 ├── Application
-│   ├── tick_to_trade.cpp       Main application (feed handler + trading engine)
+│   ├── main.cpp                Main entry point
+│   ├── tick_to_trade.cpp       (DEPRECATED - use main.cpp)
 │   └── test_feed_generator.cpp Test data generator
 │
 ├── Build & Documentation
 │   ├── Makefile                Build system
 │   ├── README.md               User guide
 │   └── ARCHITECTURE.md         This file
-└──  Logs
-     └── hft_system.log          Runtime logs (auto-created)
+│
+└── Logs
+    └── hft_system.log          Runtime logs (auto-created)
 ```
 
 ## Component Details
