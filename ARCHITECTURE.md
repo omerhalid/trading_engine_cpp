@@ -351,8 +351,14 @@ setcap cap_sys_nice,cap_net_admin,cap_ipc_lock=+ep ./tick_to_trade
 ```makefile
 CXXFLAGS = -std=c++20 -O3 -march=native -mtune=native
            -flto -funroll-loops -ffast-math
+           -fno-exceptions -fno-rtti  # Critical for deterministic latency
            -DNDEBUG  # Disable asserts in production
 ```
+
+**Rationale for `-fno-exceptions` and `-fno-rtti`:**
+- **No Exceptions**: Exception handling adds unpredictable overhead due to stack unwinding, exception tables, and branch mispredictions. HFT systems fail fast with error codes instead.
+- **No RTTI**: Runtime type information is not needed and adds code size/overhead.
+- Both are standard practice in ultra-low-latency systems (Jane Street, Citadel, Jump Trading)
 
 ### Monitoring
 

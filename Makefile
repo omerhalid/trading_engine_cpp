@@ -11,7 +11,9 @@ CXXFLAGS = -std=c++20 -Wall -Wextra -pthread
 # -flto: Link-time optimization
 # -ffast-math: Fast floating point (careful: may break IEEE compliance)
 # -funroll-loops: Unroll loops for speed
-OPTFLAGS = -O3 -march=native -mtune=native -flto -funroll-loops
+# -fno-exceptions: Disable exception handling (non-deterministic overhead)
+# -fno-rtti: Disable runtime type information (not needed, reduces code size)
+OPTFLAGS = -O3 -march=native -mtune=native -flto -funroll-loops -fno-exceptions -fno-rtti
 
 # Debug flags
 DEBUGFLAGS = -g -O0 -DDEBUG

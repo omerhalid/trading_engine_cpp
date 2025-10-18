@@ -244,12 +244,8 @@ int main(int argc, char* argv[]) {
               << " [multicast_ip] [port] [packets_per_sec] [total_packets]" << std::endl;
     std::cout << "[Main] Example: " << argv[0] << " 233.54.12.1 15000 10000 100000\n" << std::endl;
     
-    try {
-        generator.run(packets_per_second, total_packets);
-    } catch (const std::exception& e) {
-        std::cerr << "[Main] Error: " << e.what() << std::endl;
-        return 1;
-    }
+    // No exception handling - fails fast if error occurs
+    generator.run(packets_per_second, total_packets);
     
     return 0;
 }

@@ -238,8 +238,14 @@ echo -1 > /proc/sys/kernel/sched_rt_runtime_us
 ```makefile
 CXXFLAGS = -O3 -march=native -mtune=native -flto
            -ffast-math -funroll-loops
-           -fno-exceptions -fno-rtti  # If not needed
+           -fno-exceptions -fno-rtti  # Disable for low latency
 ```
+
+**Why disable exceptions?**
+- Exception handling adds non-deterministic overhead
+- Stack unwinding is unpredictable
+- Branch mispredictions from exception paths
+- Prefer error codes and early returns for predictable latency
 
 ### 4. Memory Optimization
 - Use huge pages (2MB pages vs 4KB)
