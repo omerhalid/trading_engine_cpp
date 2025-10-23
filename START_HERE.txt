@@ -1,0 +1,74 @@
+╔══════════════════════════════════════════════════════════════╗
+║     HFT TICK-TO-TRADE LEARNING SYSTEM                        ║
+║     Low-Latency | Lock-Free | Production Patterns            ║
+╚══════════════════════════════════════════════════════════════╝
+
+QUICK START:
+  
+  1. Build everything:
+     $ make all
+
+  2. Run all lessons:
+     $ make learn
+
+  3. Production system:
+     $ ./tick_to_trade
+
+═══════════════════════════════════════════════════════════════
+
+LEARNING MODULES (Progressive, 3-4 hours total):
+
+FUNDAMENTALS (30 min):
+  Lesson 1 → 01_basics.cpp            (RDTSC, cache lines, atomics, spin-wait)
+  Lesson 2 → 02_spsc_queue.cpp        (Lock-free queue with benchmarks)
+  Lesson 3 → 03_memory_pool.cpp       (10x faster than malloc)
+
+NETWORKING (30 min):
+  Lesson 4 → 04_udp_networking.cpp    (Non-blocking sockets, busy polling)
+  Lesson 5 → 05_gap_detection.cpp     (Sequence gaps, duplicates, resequencing)
+  Lesson 6 → 06_tick_to_trade_simple.cpp  (Complete simple system)
+
+ADVANCED (1.5 hours):
+  Lesson 7 → 07_order_book.cpp        (Market data structures, depth)
+  Lesson 8 → 08_cpu_pinning.cpp       (Thread affinity, RT priority)
+  Lesson 9 → 09_branch_prediction.cpp (LIKELY/UNLIKELY, hot paths)
+  Lesson 10 → 10_binary_protocol.cpp  (Binary vs text, zero-copy)
+  Lesson 11 → 11_async_logging.cpp    (Non-blocking logging)
+
+PRODUCTION CRITICAL (1 hour):
+  Lesson 12 → 12_error_handling.cpp   (Result<T>, no exceptions, -fno-exceptions)
+  Lesson 13 → 13_shared_memory_ipc.cpp (Fastest IPC, 10-50ns, cross-process)
+  Lesson 14 → 14_kernel_bypass.cpp    (Solarflare/DPDK concepts, 20-50x faster)
+
+PRODUCTION CODE (After lessons):
+
+  main.cpp                  Entry point
+  feed_handler_impl.hpp     Full feed handler
+  trading_engine.hpp        Trading engine
+  packet_manager.hpp        Industry-standard gap handling
+  logger.hpp                Async logger
+  memory_pool.hpp           Production memory pool
+  
+  All other .hpp files      Infrastructure
+
+═══════════════════════════════════════════════════════════════
+
+KEY METRICS:
+
+  SPSC Queue:        10-20 cycles/op   (~3-6 ns)
+  Memory Pool:       15-30 cycles/op   (~5-10 ns)
+  Packet Parsing:    50-100 cycles     (~15-30 ns)
+  Tick-to-Trade:     1-2 microseconds  (with kernel bypass)
+
+═══════════════════════════════════════════════════════════════
+
+EACH LESSON:
+  • Standalone program (compiles independently)
+  • Live benchmarks (see actual performance)
+  • Heavily commented (understand every line)
+  • Runnable demos (not just theory)
+
+═══════════════════════════════════════════════════════════════
+
+See LEARNING_PATH.txt for detailed study guide.
+

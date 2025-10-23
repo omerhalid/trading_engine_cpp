@@ -1,0 +1,198 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    HFT QUICK REFERENCE GUIDE                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+BUILD:
+  make all          Build everything (14 lessons + production)
+  make learn        Run all 14 lessons sequentially
+  make production   Build only production system
+  make clean        Clean all binaries
+
+RUN LESSONS:
+  ./lesson1_basics      RDTSC, cache lines, memory ordering
+  ./lesson2_spsc        Lock-free queue benchmarks
+  ./lesson3_mempool     Memory pool vs malloc (10-20x faster)
+  ./lesson4_udp         UDP networking, non-blocking I/O
+  ./lesson5_gaps        Gap detection, duplicates, resequencing
+  ./lesson6_simple_system   Complete simple tick-to-trade
+  ./lesson7_orderbook   Order book implementations
+  ./lesson8_cpu         CPU pinning, RT priority
+  ./lesson9_branches    Branch prediction, LIKELY/UNLIKELY
+  ./lesson10_protocol   Binary vs text protocols
+  ./lesson11_logging    Async logging (1000x faster)
+  ./lesson12_errors     Error handling without exceptions
+  ./lesson13_ipc producer/consumer   Shared memory IPC
+  ./lesson14_bypass     Kernel bypass concepts
+
+PRODUCTION SYSTEM:
+  ./tick_to_trade       Full production feed handler
+  ./test_feed_generator Test data generator
+
+═══════════════════════════════════════════════════════════════════════════════
+PERFORMANCE METRICS (at 3GHz CPU)
+═══════════════════════════════════════════════════════════════════════════════
+
+Operation                 Cycles      Nanoseconds     Notes
+────────────────────────────────────────────────────────────────────────────────
+RDTSC timestamp           ~10         ~3 ns           Fastest timing
+SPSC queue push/pop       10-20       3-6 ns          Lock-free
+Memory pool alloc         15-30       5-10 ns         vs 150-300 for malloc
+Order book update         20-50       7-15 ns         Array-based
+Packet parsing            50-150      15-50 ns        Binary protocol
+Async log push            20-50       7-15 ns         vs 30k+ for blocking
+Shared memory IPC         30-100      10-30 ns        Cross-process
+────────────────────────────────────────────────────────────────────────────────
+TOTAL TICK-TO-TRADE:      500-1000    150-300 ns      In-memory pipeline
++ Network (bypass):       600-1500    200-500 ns      Solarflare/DPDK
++ Network (kernel):       15000-30000 5-10 us         Standard sockets
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY TECHNIQUES BY CATEGORY
+═══════════════════════════════════════════════════════════════════════════════
+
+TIMING & MEASUREMENT:
+  • RDTSC/RDTSCP for cycle-accurate timestamps
+  • Calibrate TSC frequency on startup
+  • Use rdtscp() after operations for accurate "end" time
+
+CONCURRENCY:
+  • Lock-free data structures (SPSC queue, memory pool)
+  • std::atomic with memory_order_acquire/release
+  • alignas(64) to prevent false sharing
+  • compare_exchange_weak for CAS operations
+
+MEMORY:
+  • Pre-allocate everything at startup
+  • Use memory pools (no malloc in hot path)
+  • Cache-line alignment (64 bytes)
+  • Huge pages for TLB optimization (2MB pages)
+  • mlock() to prevent swapping
+
+CPU OPTIMIZATION:
+  • Pin threads to isolated cores
+  • Set SCHED_FIFO real-time priority
+  • LIKELY/UNLIKELY hints for branch predictor
+  • Minimize branches in hot loops
+  • __builtin_prefetch for cache warming
+
+NETWORKING:
+  • Non-blocking sockets (O_NONBLOCK)
+  • Busy polling (never block)
+  • UDP multicast for market data
+  • Large socket buffers (16MB+)
+  • Kernel bypass for sub-microsecond (Solarflare/DPDK)
+
+DATA STRUCTURES:
+  • Binary protocols (fixed offsets)
+  • Zero-copy (work with network buffer directly)
+  • Power-of-2 sizes (fast modulo)
+  • Fixed-size messages (predictable)
+
+ERROR HANDLING:
+  • NO exceptions (-fno-exceptions)
+  • Result<T> for error propagation
+  • Fail fast (don't recover in hot path)
+  • Assertions in debug only
+
+IPC:
+  • Shared memory (fastest: 10-50ns)
+  • Lock-free queues across processes
+  • Process isolation for safety
+  • mmap() with MAP_SHARED
+
+═══════════════════════════════════════════════════════════════════════════════
+COMMON PITFALLS TO AVOID
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ NEVER in hot path:
+  • malloc/free (use memory pools)
+  • Exceptions (use error codes)
+  • Blocking I/O (use async)
+  • printf/cout (use async logger or nothing)
+  • Mutex locks (use lock-free)
+  • System calls (use kernel bypass)
+  • String operations (use binary)
+  • Dynamic allocation (pre-allocate)
+
+✓ ALWAYS in hot path:
+  • Lock-free algorithms
+  • Pre-allocated memory
+  • Binary protocols
+  • Inline functions
+  • Branch hints (LIKELY/UNLIKELY)
+  • Cache-friendly data layout
+  • Busy polling (spin-wait)
+
+═══════════════════════════════════════════════════════════════════════════════
+PROFILING COMMANDS (Linux)
+═══════════════════════════════════════════════════════════════════════════════
+
+CPU profiling:
+  perf record -g ./tick_to_trade
+  perf report
+
+Cache misses:
+  perf stat -e cache-misses,cache-references ./lesson2_spsc
+
+Branch mispredictions:
+  perf stat -e branch-misses,branches ./lesson9_branches
+
+Context switches:
+  perf stat -e context-switches ./lesson8_cpu
+
+IPC (instructions per cycle):
+  perf stat -e instructions,cycles ./tick_to_trade
+
+Assembly output:
+  make asm
+  less main.s
+
+═══════════════════════════════════════════════════════════════════════════════
+PRODUCTION DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+System Configuration:
+  ☐ Isolate CPU cores: isolcpus=0-3 nohz_full=0-3
+  ☐ Disable CPU frequency scaling: cpupower frequency-set -g performance
+  ☐ Setup huge pages: echo 1024 > /proc/sys/vm/nr_hugepages
+  ☐ Disable RT throttling: echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+  ☐ Increase locked memory: ulimit -l unlimited
+  ☐ Install kernel bypass drivers (Solarflare/DPDK)
+
+Application:
+  ☐ Compile with -O3 -march=native -fno-exceptions -fno-rtti
+  ☐ Set capabilities: setcap cap_sys_nice,cap_ipc_lock,cap_net_admin=+ep
+  ☐ Pin threads to isolated cores
+  ☐ Use huge pages for memory pools
+  ☐ Configure kernel bypass NICs
+  ☐ Setup monitoring and alerting
+
+Testing:
+  ☐ Measure tick-to-trade latency
+  ☐ Test gap detection/recovery
+  ☐ Load test at production rates
+  ☐ Verify no packet drops
+  ☐ Profile with perf
+  ☐ Check for cache misses
+
+═══════════════════════════════════════════════════════════════════════════════
+SUGGESTED LEARNING PATH
+═══════════════════════════════════════════════════════════════════════════════
+
+Week 1: Fundamentals
+  Day 1-2: Lessons 1-3 (basics, queue, memory)
+  Day 3-4: Lessons 4-6 (networking, gaps, simple system)
+  Day 5: Review, experiment, modify code
+
+Week 2: Advanced
+  Day 1-2: Lessons 7-9 (order book, CPU, branches)
+  Day 3-4: Lessons 10-12 (protocols, logging, errors)
+  Day 5: Lessons 13-14 (IPC, kernel bypass)
+
+Week 3: Production
+  Study production code, modify strategies, add features
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Good luck on your HFT journey! Remember: Every nanosecond counts.
+

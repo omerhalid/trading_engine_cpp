@@ -1,0 +1,89 @@
+[
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c main.cpp",
+    "file": "main.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c test_feed_generator.cpp",
+    "file": "test_feed_generator.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 01_basics.cpp",
+    "file": "01_basics.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 02_spsc_queue.cpp",
+    "file": "02_spsc_queue.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 03_memory_pool.cpp",
+    "file": "03_memory_pool.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 04_udp_networking.cpp",
+    "file": "04_udp_networking.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 05_gap_detection.cpp",
+    "file": "05_gap_detection.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 06_tick_to_trade_simple.cpp",
+    "file": "06_tick_to_trade_simple.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 07_order_book.cpp",
+    "file": "07_order_book.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 08_cpu_pinning.cpp",
+    "file": "08_cpu_pinning.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 09_branch_prediction.cpp",
+    "file": "09_branch_prediction.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 10_binary_protocol.cpp",
+    "file": "10_binary_protocol.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 11_async_logging.cpp",
+    "file": "11_async_logging.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 12_error_handling.cpp",
+    "file": "12_error_handling.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 13_shared_memory_ipc.cpp",
+    "file": "13_shared_memory_ipc.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c 14_kernel_bypass.cpp",
+    "file": "14_kernel_bypass.cpp"
+  },
+  {
+    "directory": "/Users/omercinar/Dev/trading_engine_cpp",
+    "command": "g++ -std=c++20 -Wall -Wextra -pthread -c practice.cpp",
+    "file": "practice.cpp"
+  }
+]
+
+

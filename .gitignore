@@ -3,6 +3,22 @@ tick_to_trade
 tick_to_trade_debug
 test_feed_generator
 
+# Learning modules
+lesson1_basics
+lesson2_spsc
+lesson3_mempool
+lesson4_udp
+lesson5_gaps
+lesson6_simple_system
+lesson7_orderbook
+lesson8_cpu
+lesson9_branches
+lesson10_protocol
+lesson11_logging
+lesson12_errors
+lesson13_ipc
+lesson14_bypass
+
 # Object files
 *.o
 *.obj

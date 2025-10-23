@@ -1,0 +1,368 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    HFT LEARNING PATH - START HERE                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+This codebase is designed as a progressive learning resource for low-latency
+high-frequency trading systems. Work through the lessons in order.
+
+═══════════════════════════════════════════════════════════════════════════════
+QUICK START
+═══════════════════════════════════════════════════════════════════════════════
+
+Build all lessons:
+  $ make all
+
+Run all lessons sequentially:
+  $ make learn
+
+Run individual lesson:
+  $ make lesson1_basics && ./lesson1_basics
+
+Production system:
+  $ make production && ./tick_to_trade
+
+═══════════════════════════════════════════════════════════════════════════════
+LEARNING MODULES (2-3 hours total, 11 lessons)
+═══════════════════════════════════════════════════════════════════════════════
+
+PART 1: FUNDAMENTALS (30 min)
+──────────────────────────────
+
+┌─ LESSON 1: Low-Latency Basics (5 min) ───────────────────────────────────┐
+│ File: 01_basics.cpp                                                       │
+│ Run:  ./lesson1_basics                                                    │
+│                                                                            │
+│ Learn:                                                                     │
+│  • RDTSC timestamping (~10 cycles vs 1000+ for system calls)             │
+│  • Cache-line alignment (prevent false sharing)                           │
+│  • Memory ordering (acquire/release semantics)                            │
+│  • Spin waiting (avoid context switches)                                  │
+│                                                                            │
+│ Why: These are the foundation of ALL low-latency systems                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 2: Lock-Free SPSC Queue (10 min) ────────────────────────────────┐
+│ File: 02_spsc_queue.cpp                                                   │
+│ Run:  ./lesson2_spsc                                                      │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Single Producer Single Consumer pattern                                │
+│  • Lock-free ring buffer implementation                                   │
+│  • Cache-line optimization                                                │
+│  • Simple vs Optimized (with position caching)                            │
+│  • Live benchmark showing 10-20 cycles/op                                 │
+│                                                                            │
+│ Why: Core data structure connecting feed handler to trading engine        │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 3: Lock-Free Memory Pool (10 min) ───────────────────────────────┐
+│ File: 03_memory_pool.cpp                                                  │
+│ Run:  ./lesson3_mempool                                                   │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Why malloc() is terrible for HFT (unpredictable latency)               │
+│  • Pre-allocated memory blocks                                            │
+│  • Lock-free free list using CAS                                          │
+│  • Live benchmark: 10-20x faster than malloc!                             │
+│                                                                            │
+│ Why: Predictable memory allocation is critical for low latency            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+PART 2: NETWORKING (30 min)
+────────────────────────────
+
+┌─ LESSON 4: UDP Networking (5 min) ───────────────────────────────────────┐
+│ File: 04_udp_networking.cpp                                               │
+│ Run:  ./lesson4_udp                                                       │
+│                                                                            │
+│ Learn:                                                                     │
+│  • UDP vs TCP (why UDP for market data)                                   │
+│  • Non-blocking sockets (O_NONBLOCK)                                      │
+│  • Busy polling pattern                                                   │
+│  • Socket optimizations (buffer sizes, etc.)                              │
+│                                                                            │
+│ Why: Understand how market data arrives from exchanges                    │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 5: Gap Detection & Duplicate Filtering (10 min) ─────────────────┐
+│ File: 05_gap_detection.cpp                                                │
+│ Run:  ./lesson5_gaps                                                      │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Sequence number tracking                                               │
+│  • Gap detection (missing packets)                                        │
+│  • Duplicate filtering (sliding window, O(1) lookup)                      │
+│  • Packet resequencing (buffer out-of-order packets)                      │
+│  • Simulated examples with detailed output                                │
+│                                                                            │
+│ Why: Network is unreliable - must handle packet loss/duplication          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 6: Simple Tick-to-Trade System (10 min) ─────────────────────────┐
+│ File: 06_tick_to_trade_simple.cpp                                         │
+│ Run:  ./lesson6_simple_system                                             │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Complete end-to-end system                                             │
+│  • Feed handler thread (producer)                                         │
+│  • Trading engine thread (consumer)                                       │
+│  • SPSC queue connecting them                                             │
+│  • Latency measurement (tick-to-trade)                                    │
+│  • Two-thread architecture                                                │
+│                                                                            │
+│ Why: See how all pieces fit together                                      │
+└────────────────────────────────────────────────────────────────────────────┘
+
+PART 3: ADVANCED TOPICS (1+ hour)
+──────────────────────────────────
+
+┌─ LESSON 7: Order Book Implementation (10 min) ───────────────────────────┐
+│ File: 07_order_book.cpp                                                   │
+│ Run:  ./lesson7_orderbook                                                 │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Simple book (top of book only)                                         │
+│  • Full book (market depth with map)                                      │
+│  • Fast book (array-based, O(1) access)                                   │
+│  • Liquidity calculations                                                 │
+│  • Live benchmark showing update performance                              │
+│                                                                            │
+│ Why: Core data structure for market state                                 │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 8: CPU Pinning & Thread Affinity (10 min) ───────────────────────┐
+│ File: 08_cpu_pinning.cpp                                                  │
+│ Run:  ./lesson8_cpu                                                       │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Why pin threads to cores (avoid context switches)                      │
+│  • pthread_setaffinity_np usage                                           │
+│  • Real-time priority (SCHED_FIFO)                                        │
+│  • Isolated cores (isolcpus kernel param)                                 │
+│  • NUMA awareness                                                         │
+│                                                                            │
+│ Why: 10-50% latency reduction from proper pinning                         │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 9: Branch Prediction (10 min) ────────────────────────────────────┐
+│ File: 09_branch_prediction.cpp                                            │
+│ Run:  ./lesson9_branches                                                  │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Branch misprediction penalty (10-20 cycles)                            │
+│  • LIKELY/UNLIKELY compiler hints                                         │
+│  • Hot path optimization                                                  │
+│  • Branch hoisting from loops                                             │
+│  • Profiling with perf                                                    │
+│                                                                            │
+│ Why: Reduce mispredictions in critical paths                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 10: Binary Protocols (10 min) ────────────────────────────────────┐
+│ File: 10_binary_protocol.cpp                                              │
+│ Run:  ./lesson10_protocol                                                 │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Binary vs text protocols (10-50x faster)                               │
+│  • Fixed-size structures (predictable layout)                             │
+│  • Zero-copy parsing (pointer casting)                                    │
+│  • Real exchange protocols (ITCH, MDP3, Pillar)                           │
+│  • Live benchmark: text vs binary                                         │
+│                                                                            │
+│ Why: All modern exchanges use binary protocols                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 11: Async Logging (10 min) ───────────────────────────────────────┐
+│ File: 11_async_logging.cpp                                                │
+│ Run:  ./lesson11_logging                                                  │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Why never log in hot path (disk I/O = microseconds)                    │
+│  • SPSC queue to I/O thread                                               │
+│  • Fixed-size log entries                                                 │
+│  • Graceful degradation (drop if full)                                    │
+│  • Live benchmark: 1000x faster than blocking                             │
+│                                                                            │
+│ Why: Logging can destroy latency if done wrong                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+PART 4: PRODUCTION CRITICAL (1 hour)
+─────────────────────────────────────
+
+┌─ LESSON 12: Error Handling Without Exceptions (10 min) ──────────────────┐
+│ File: 12_error_handling.cpp                                               │
+│ Run:  ./lesson12_errors                                                   │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Why exceptions are banned in HFT (non-deterministic)                   │
+│  • Result<T> pattern (Rust-style error handling)                          │
+│  • Error codes with UNLIKELY hints                                        │
+│  • Debug assertions (compiled out in release)                             │
+│  • Fail fast pattern                                                      │
+│                                                                            │
+│ Why: Predictable latency requires deterministic error handling            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 13: Shared Memory IPC (15 min) ──────────────────────────────────┐
+│ File: 13_shared_memory_ipc.cpp                                            │
+│ Run:  Terminal 1: ./lesson13_ipc producer                                 │
+│       Terminal 2: ./lesson13_ipc consumer                                 │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Fastest IPC method (10-50ns latency)                                   │
+│  • shm_open() and mmap() for shared memory                                │
+│  • SPSC queue in shared memory (cross-process)                            │
+│  • Zero-copy communication                                                │
+│  • Process isolation strategies                                           │
+│                                                                            │
+│ Why: Separate processes for safety, still ultra-low latency               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LESSON 14: Kernel Bypass Concepts (15 min) ─────────────────────────────┐
+│ File: 14_kernel_bypass.cpp                                                │
+│ Run:  ./lesson14_bypass                                                   │
+│                                                                            │
+│ Learn:                                                                     │
+│  • Standard socket path (5-10us) vs bypass (200-500ns)                    │
+│  • DMA directly to user space                                             │
+│  • Polling vs interrupts                                                  │
+│  • Zero-copy packet processing                                            │
+│  • Solarflare ef_vi, Intel DPDK, Mellanox VMA                             │
+│  • Integration points in production code                                  │
+│                                                                            │
+│ Why: Sub-microsecond latency requires kernel bypass                       │
+└────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+PRODUCTION SYSTEM (advanced)
+═══════════════════════════════════════════════════════════════════════════════
+
+After completing lessons 1-6, study the production system:
+
+Files:
+  • main.cpp                 - Main entry point
+  • feed_handler_impl.hpp    - Full feed handler with all features
+  • trading_engine.hpp       - Trading engine implementation
+  • packet_manager.hpp       - Industrial gap/duplicate handling
+  • logger.hpp               - Async non-blocking logger
+  • memory_pool.hpp          - Production memory pool with huge pages
+  • All other .hpp files     - Supporting infrastructure
+
+Run:
+  $ ./tick_to_trade          # Production system
+  $ ./test_feed_generator    # Test data generator
+
+Test:
+  Terminal 1: ./tick_to_trade
+  Terminal 2: ./test_feed_generator 233.54.12.1 15000 10000 100000
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY CONCEPTS BY LESSON
+═══════════════════════════════════════════════════════════════════════════════
+
+FUNDAMENTALS:
+  Lesson 1: RDTSC, alignas(64), memory_order_acquire/release, _mm_pause()
+  Lesson 2: Lock-free, ring buffer, power-of-2, cached positions, CAS
+  Lesson 3: Pre-allocation, free list, placement new, compare_exchange
+
+NETWORKING:
+  Lesson 4: Non-blocking I/O, busy polling, UDP multicast, socket opts
+  Lesson 5: Sequence numbers, gap detection, sliding window, resequencing
+  Lesson 6: Producer-consumer, SPSC queue, tick-to-trade measurement
+
+ADVANCED:
+  Lesson 7: Order book, price levels, market depth, O(1) operations
+  Lesson 8: CPU affinity, thread pinning, RT priority, isolated cores
+  Lesson 9: Branch prediction, LIKELY/UNLIKELY, hot path optimization
+  Lesson 10: Binary protocols, zero-copy, fixed layouts, ITCH/MDP3
+  Lesson 11: Async logging, I/O thread, non-blocking, fixed-size entries
+
+PRODUCTION CRITICAL:
+  Lesson 12: Error codes, Result<T>, no exceptions, fail fast
+  Lesson 13: Shared memory, shm_open, cross-process SPSC, zero-copy IPC
+  Lesson 14: Kernel bypass, DMA, Solarflare ef_vi, DPDK, 20-50x speedup
+
+PRODUCTION SYSTEM:
+  All above + full packet manager, recovery feeds, state machines, async logger
+
+═══════════════════════════════════════════════════════════════════════════════
+RECOMMENDED STUDY ORDER
+═══════════════════════════════════════════════════════════════════════════════
+
+Day 1:
+  1. Run: make learn
+  2. Read each lesson file carefully
+  3. Understand the benchmarks
+  4. Experiment: modify code, see what breaks
+
+Day 2:
+  5. Study production headers (spsc_queue.hpp, memory_pool.hpp, etc.)
+  6. Compare lesson code vs production code
+  7. Understand the optimizations
+
+Day 3:
+  8. Run production system: make run
+  9. Run with test generator: make test
+  10. Study feed_handler_impl.hpp and trading_engine.hpp
+
+Day 4:
+  11. Modify trading logic in trading_engine.hpp
+  12. Add your own strategies
+  13. Measure latency impact
+
+═══════════════════════════════════════════════════════════════════════════════
+PERFORMANCE TARGETS
+═══════════════════════════════════════════════════════════════════════════════
+
+After completing lessons, you should understand these metrics:
+
+  Component              Latency (cycles)   Latency (ns @ 3GHz)
+  ────────────────────────────────────────────────────────────
+  RDTSC timestamp        ~10                ~3 ns
+  SPSC queue push/pop    10-20              3-6 ns
+  Memory pool alloc      15-30              5-10 ns
+  Order book update      20-50              7-15 ns
+  Packet parsing         50-150             15-50 ns
+  Async log push         20-50              7-15 ns
+  
+  TOTAL TICK-TO-TRADE:   ~500-1000 cycles   ~150-300 ns (in-process)
+  
+With network (kernel bypass): 1-2 microseconds
+With network (kernel sockets): 5-10 microseconds
+
+═══════════════════════════════════════════════════════════════════════════════
+ADDITIONAL RESOURCES
+═══════════════════════════════════════════════════════════════════════════════
+
+Further Reading:
+  • "The Art of Multiprocessor Programming" - Herlihy & Shavit
+  • "C++ Concurrency in Action" - Anthony Williams
+  • "Systems Performance" - Brendan Gregg
+  • LMAX Disruptor paper (lock-free patterns)
+
+Real Exchange Protocols:
+  • NASDAQ ITCH 5.0 specification
+  • CME MDP 3.0 specification
+  • NYSE Pillar specification
+
+═══════════════════════════════════════════════════════════════════════════════
+TIPS FOR LEARNING
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Run each lesson and READ the output carefully
+2. Modify values and see what changes
+3. Use 'perf' to profile: perf stat -e cache-misses ./lesson2_spsc
+4. Compare assembly: make asm
+5. Experiment with different optimization flags
+6. Try running on different CPU cores
+7. Measure everything - latency is king
+
+Questions to ask yourself:
+  • Why is this cache-line aligned?
+  • What happens if I remove memory_order_acquire?
+  • Why power-of-2 sizes?
+  • Why spin instead of sleep?
+  • How does the gap detector work?
+
+Good luck on your HFT journey!
+
